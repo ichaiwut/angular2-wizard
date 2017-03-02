@@ -1,4 +1,4 @@
-import { Component, OnInit, Output, EventEmitter, ContentChildren, QueryList, AfterContentInit } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter, ContentChildren, QueryList, AfterContentInit, Input } from '@angular/core';
 import { WizardStepComponent } from './wizard-step.component';
 
 @Component({
@@ -7,18 +7,21 @@ import { WizardStepComponent } from './wizard-step.component';
   `<div class="card">
     <div class="card-header">
       <ul class="nav nav-justified">
+        <li class="nav-item nav-header">{{ labelButton.headline }}</li>
         <li class="nav-item" *ngFor="let step of steps" [ngClass]="{'active': step.isActive, 'enabled': !step.isDisabled, 'disabled': step.isDisabled}">
-          <a (click)="goToStep(step)">{{step.title}}</a>
+         {{step.title}}
         </li>
       </ul>
     </div>
     <div class="card-block">
       <ng-content></ng-content>
     </div>
-    <div class="card-footer" [hidden]="isCompleted">
-        <button type="button" class="btn btn-secondary float-left" (click)="previous()" [hidden]="!hasPrevStep || !activeStep.showPrev">Previous</button>
-        <button type="button" class="btn btn-secondary float-right" (click)="next()" [disabled]="!activeStep.isValid" [hidden]="!hasNextStep || !activeStep.showNext">Next</button>
-        <button type="button" class="btn btn-secondary float-right" (click)="complete()" [disabled]="!activeStep.isValid" [hidden]="hasNextStep">Done</button>
+    <div class="card-footer clearfix">
+        <button type="button" class="btn btn-secondary float-left" (click)="previous()" [hidden]="!hasPrevStep || !activeStep.showPrev || isComplete">{{ labelButton.labelPrevious }}</button>
+        <button type="button" class="btn btn-secondary float-right" (click)="next()" [disabled]="!activeStep.isValid || needInfo" [hidden]="!hasNextStep || !activeStep.showNext || isComplete">{{ labelButton.labelNext }}</button>
+        <button type="button" class="btn btn-info float-right" [ngClass]="{'confirmed': !needInfo}" (click)="confirm()" [hidden]="!hasPrevStep || !mapPage || isComplete">{{ labelButton.labelInfo }}</button>
+        <button type="button" class="btn btn-secondary float-right" (click)="complete()" [disabled]="!activeStep.isValid" [hidden]="hasNextStep || isComplete">{{ labelButton.labelDone }}</button>
+        <button type="button" class="btn btn-secondary float-right" (click)="goHome()" [hidden]="!isComplete">{{ labelButton.labelStart }}</button>
     </div>
   </div>`
   ,
@@ -38,6 +41,11 @@ export class WizardComponent implements OnInit, AfterContentInit {
   private _steps: Array<WizardStepComponent> = [];
   private _isCompleted: boolean = false;
 
+  @Input() labelButton: any;
+  @Input() mapPage: boolean = false;
+  @Input() needInfo: boolean = false;
+  @Input() needValidate: boolean = false;
+  @Input() isComplete: boolean = false;
   @Output() onStepChanged: EventEmitter<WizardStepComponent> = new EventEmitter<WizardStepComponent>();
 
   constructor() { }
@@ -48,6 +56,10 @@ export class WizardComponent implements OnInit, AfterContentInit {
   ngAfterContentInit() {
     this.wizardSteps.forEach(step => this._steps.push(step));
     this._steps[0].isActive = true;
+  }
+
+  confirm() {
+    this.needInfo = false;
   }
 
   private get steps(): Array<WizardStepComponent> {
@@ -107,6 +119,10 @@ export class WizardComponent implements OnInit, AfterContentInit {
   complete() {
     this._isCompleted = true;
     this.activeStep.onComplete.emit();
+  }
+
+  goHome() {
+    window.location.href = '/';
   }
 
 }
