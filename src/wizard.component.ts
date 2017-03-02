@@ -1,4 +1,4 @@
-import { Component, OnInit, Output, EventEmitter, ContentChildren, QueryList, AfterContentInit, Input } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter, ContentChildren, QueryList, AfterContentInit, Input, OnChanges } from '@angular/core';
 import { WizardStepComponent } from './wizard-step.component';
 
 @Component({
@@ -36,7 +36,7 @@ import { WizardStepComponent } from './wizard-step.component';
     '.disabled { color: #ccc; }'
   ]
 })
-export class WizardComponent implements OnInit, AfterContentInit {
+export class WizardComponent implements OnInit, AfterContentInit, OnChanges {
   @ContentChildren(WizardStepComponent) wizardSteps: QueryList<WizardStepComponent>;
   private _steps: Array<WizardStepComponent> = [];
   private _isCompleted: boolean = false;
@@ -47,6 +47,8 @@ export class WizardComponent implements OnInit, AfterContentInit {
   @Input() needValidate: boolean = false;
   @Input() isComplete: boolean = false;
   @Output() onStepChanged: EventEmitter<WizardStepComponent> = new EventEmitter<WizardStepComponent>();
+  @Output() onClickConfirm = new EventEmitter();
+  @Output() onClickGoHome = new EventEmitter();
 
   constructor() { }
 
@@ -58,8 +60,12 @@ export class WizardComponent implements OnInit, AfterContentInit {
     this._steps[0].isActive = true;
   }
 
+  ngOnChanges(change) {
+    // console.log(change);
+  }
+
   confirm() {
-    this.needInfo = false;
+    this.onClickConfirm.emit();
   }
 
   private get steps(): Array<WizardStepComponent> {
@@ -122,7 +128,7 @@ export class WizardComponent implements OnInit, AfterContentInit {
   }
 
   goHome() {
-    window.location.href = '/';
+    this.onClickGoHome.emit();
   }
 
 }
